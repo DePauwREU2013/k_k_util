@@ -20,22 +20,23 @@ package k_k_.algo {
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 
+import scala.collection.GenTraversableOnce
 import scala.collection.immutable.MapLike
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.{Builder, MapBuilder}
 
 import k_k_.data.rand._
 
-
-/**
- *  Alternative `calcDigest` implementation for mixin to
- *  <a href="ConsistentChoice.html">`ConsistentChoice[T]`</a>.
- */
-trait SHAInputDigest { self: ConsistentChoice[_] =>
-
-  override protected final def calcDigest(bytes: Array[Byte]): Long =
-    trailing_Long(MessageDigest.getInstance("SHA").digest(bytes))
-}
+// BTH: commented out due to specialization (?) problem with 2.10
+// /**
+//  *  Alternative `calcDigest` implementation for mixin to
+//  *  <a href="ConsistentChoice.html">`ConsistentChoice[T]`</a>.
+//  */
+// trait SHAInputDigest { self: ConsistentChoice[_] =>
+// 
+//   override protected final def calcDigest(bytes: Array[Byte]): Long =
+//     trailing_Long(MessageDigest.getInstance("SHA").digest(bytes))
+// }
 
 
 /**
@@ -119,8 +120,8 @@ object ConsistentChoice {
           val nValues = (weight * choiceMultiple).toInt
           (choice, nValues)
         }
-        val oldValues = oldChoiceValues.get(choice).getOrElse(Seq.empty)
-        val valuesDelta = nValues - oldValues.length
+        oldValues = oldChoiceValues.get(choice).getOrElse(Seq.empty)
+        valuesDelta = nValues - oldValues.length
         if valuesDelta != 0
       } yield {
         if (nValues == 0) {
@@ -327,7 +328,7 @@ class ConsistentChoice[T] private (
   // NOTE: must be overridden (from MapLike[_, _]), since, although, correct
   // covariant return type is returned (at runtime), compiler remains unaware,
   // since MapLike fixes return type as Map[A, B]
-  override def ++ [X >: Double](xs: TraversableOnce[(T, X)]):
+  override def ++ [X >: Double](xs: GenTraversableOnce[(T, X)]):
       ConsistentChoice[T] =
     (this /: xs) { _ + _ }
 
