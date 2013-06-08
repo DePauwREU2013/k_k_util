@@ -25,6 +25,7 @@ import scala.collection.TraversableOnce
 
 import scala.util.Random
 
+import language.higherKinds
 
 /**
  *  Trait conveying the ability to be seeded by a `Long` value.

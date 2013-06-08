@@ -27,19 +27,22 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ConcurrentMap
+import scala.collection.concurrent
+
+import scala.reflect.ClassTag
 
 import k_k_.data.rand._
 
 import k_k_.algo.ConsistentChoice
 
+import language.existentials
 
-// NOTE: since type class bound ClassManifest (not Manifest), unable to verify
+// NOTE: since type class bound ClassTag (not Manifest), unable to verify
 // type ctor params (i.e. HOType[_] verifiable, but not ArgT in HOType[ArgT])
-class IsInstanceOfMatcher[T: ClassManifest] extends BeMatcher[Any] {
+class IsInstanceOfMatcher[T: ClassTag] extends BeMatcher[Any] {
   def apply(x: Any) = {
     val (xClass, expectedClass) =
-      (x.asInstanceOf[AnyRef].getClass, classManifest[T].erasure)
+      (x.asInstanceOf[AnyRef].getClass, scala.reflect.classTag[T].runtimeClass)
     MatchResult(
       expectedClass.isAssignableFrom(xClass),
       xClass.getName + " is *not* instance of " + expectedClass.getName,
@@ -262,7 +265,7 @@ class ConsistentChoiceSuite extends JUnitSuite with ShouldMatchers {
       calcKey: Int => String = defaultKeyCalc
     ): collection.Map[T, Long] = {
 
-    val counts: ConcurrentMap[T, AtomicLong] =
+    val counts: concurrent.Map[T, AtomicLong] =
         new ConcurrentHashMap[T, AtomicLong]
 
     def increment(x: T) {
